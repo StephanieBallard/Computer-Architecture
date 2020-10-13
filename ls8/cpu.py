@@ -2,12 +2,26 @@
 
 import sys
 
+HLT = 0b00000001   # 1
+LDI = 0b10000010   # 130
+PRN = 0b01000111   # 71
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.ram = [0] * 256 # Memory
+        self.register = [0] * 8 # Registers
+        self.PC = 0 # Program Counter
+        
+    def ram_read(self, MAR):
+        ''' Return a value at memory address register (MAR) '''
+        return self.ram[MAR]
+
+    def ram_write(self, MDR, MAR):
+        ''' Write value memory data register to address memory address register (MAR) '''
+        self.ram[MAR] = MDR
 
     def load(self):
         """Load a program into memory."""
@@ -62,4 +76,29 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        running = True
+
+        while running:
+            ir = self.ram_read(self.PC)
+            operand_a = self.ram_read(self.PC + 1)
+            operand_b = self.ram_read(self.PC + 2)
+
+            if ir == HLT:
+                running = False
+
+            elif ir == LDI:
+                self.register[operand_a] = operand_b
+
+            elif ir == PRN:
+                print(self.register[operand_a])
+
+cpu = CPU
+
+# Monday:
+# - [X] Inventory what is here
+# - [X] Implement the `CPU` constructor
+# - [X] Add RAM functions `ram_read()` and `ram_write()`
+# - [X] Implement the core of `run()`
+# - [X] Implement the `HLT` instruction handler
+# - [X] Add the `LDI` instruction
+# - [X] Add the `PRN` instruction
