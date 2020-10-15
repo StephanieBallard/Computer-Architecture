@@ -8,14 +8,14 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.ram = [0] * 256 # Memory
-        self.register = [0] * 8 # Registers
+        self.reg = [0] * 8 # Registers
         self.PC = 0 # Program Counter
         
     def ram_read(self, MAR):
         ''' Return a value at memory address register (MAR) '''
         return self.ram[MAR]
 
-    def ram_write(self, MDR, MAR):
+    def ram_write(self, MAR, MDR):
         ''' Write value memory data register to address memory address register (MAR) '''
         self.ram[MAR] = MDR
 
@@ -72,10 +72,10 @@ class CPU:
         """ALU operations."""
 
         if op == "ADD":
-            self.register[reg_a] += self.register[reg_b]
+            self.reg[reg_a] += self.reg[reg_b]
         #elif op == "SUB": etc
         elif op == "MUL":
-            self.register[reg_a] *= self.register[reg_b]
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
         
@@ -96,7 +96,7 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.register[i], end='')
+            print(" %02X" % self.reg[i], end='')
 
         print()
 
@@ -109,6 +109,11 @@ class CPU:
         PRN = 0b01000111   # 71
         MUL = 0b10100010
 
+        SP = 7
+        PUSH = 0b01000101
+        POP = 0b01000110
+
+
         while running:
             ir = self.ram_read(self.PC)
             operand_a = self.ram_read(self.PC + 1)
@@ -118,16 +123,29 @@ class CPU:
                 running = False
 
             elif ir == LDI:
-                self.register[operand_a] = operand_b
+                self.reg[operand_a] = operand_b
                 self.PC += 3
 
             elif ir == PRN:
-                print(self.register[operand_a])
+                print(self.reg[operand_a])
                 self.PC += 2
             
             elif ir == MUL:
-                self.alu("MUL", operand_a,operand_b)
+                self.alu("MUL", operand_a, operand_b)
                 self.PC += 3
+
+            elif ir == PUSH:
+                self.trace()
+                SP -= 1
+                self.ram_write(SP, self.reg[operand_a])
+                self.PC += 2
+            
+            elif ir == POP:
+                self.trace()
+                self.reg[operand_a] = self.ram[SP]
+                SP += 1
+                self.PC += 2
+
 
 
 # Monday:
