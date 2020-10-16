@@ -10,6 +10,7 @@ class CPU:
         self.ram = [0] * 256 # Memory
         self.reg = [0] * 8 # Registers
         self.PC = 0 # Program Counter
+        self.FL = 0b00000000
         
     def ram_read(self, MAR):
         ''' Return a value at memory address register (MAR) '''
@@ -78,6 +79,13 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
+        elif op == 'CMP':
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.FL = 0b00000100
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.FL = 0b00000010
+            elif self.reg[reg_a] == self.reg[reg_b]:
+                self.FL = 0b00000001
         else:
             raise Exception("Unsupported ALU operation")
         
@@ -119,7 +127,12 @@ class CPU:
 
         CALL = 0b01010000
         RET  = 0b00010001
+        
+        CMP = 0b10100111
+        JMP = 0b01010100
 
+        JEQ = 0b01010101
+        JNE = 0b01010110
 
         while running:
             ir = self.ram_read(self.PC)
@@ -170,3 +183,18 @@ class CPU:
             elif ir == RET:
                 self.PC = self.ram[SP]
                 SP += 1
+
+            elif ir == JMP:
+                self.PC = self.reg[operand_a]
+
+            elif ir == JEQ:
+                if self.FL & 0b00000001 == 1:
+                    self.PC = self.reg[operand_a]
+                else:
+                    self.PC += 2
+
+            elif ir == JNE:
+                if self.FL & 0b00000001 != 1:
+                    self.PC = self.reg[operand_a]
+                else:
+                    self.PC += 2
