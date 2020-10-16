@@ -184,6 +184,9 @@ class CPU:
                 self.PC = self.ram[SP]
                 SP += 1
 
+            elif ir == CMP:
+                self.alu("CMP", operand_a, operand_b)
+
             elif ir == JMP:
                 self.PC = self.reg[operand_a]
 
