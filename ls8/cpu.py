@@ -76,6 +76,8 @@ class CPU:
         #elif op == "SUB": etc
         elif op == "MUL":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "SUB":
+            self.reg[reg_a] -= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
         
@@ -108,10 +110,15 @@ class CPU:
         LDI = 0b10000010   # 130
         PRN = 0b01000111   # 71
         MUL = 0b10100010
+        ADD = 0b10100000
+        SUB = 0b10100001
 
         SP = 7
         PUSH = 0b01000101
         POP = 0b01000110
+
+        CALL = 0b01010000
+        RET  = 0b00010001
 
 
         while running:
@@ -133,26 +140,33 @@ class CPU:
             elif ir == MUL:
                 self.alu("MUL", operand_a, operand_b)
                 self.PC += 3
+            
+            elif ir == ADD:
+                self.alu("ADD", operand_a,operand_b)
+                self.PC += 3
+            
+            elif ir == SUB:
+                self.alu("SUB", operand_a,operand_b)
+                self.PC += 3
 
             elif ir == PUSH:
-                self.trace()
+                # self.trace()
                 SP -= 1
                 self.ram_write(SP, self.reg[operand_a])
                 self.PC += 2
             
             elif ir == POP:
-                self.trace()
+                # self.trace()
                 self.reg[operand_a] = self.ram[SP]
                 SP += 1
                 self.PC += 2
 
+            elif ir == CALL:
+                value = self.PC + 2
+                SP -= 1 # decrement Stack pointer bc we are pushing off thee stack
+                self.ram_write(SP, value)
+                self.PC = self.reg[operand_a]
 
-
-# Monday:
-# - [X] Inventory what is here
-# - [X] Implement the `CPU` constructor
-# - [X] Add RAM functions `ram_read()` and `ram_write()`
-# - [X] Implement the core of `run()`
-# - [X] Implement the `HLT` instruction handler
-# - [X] Add the `LDI` instruction
-# - [X] Add the `PRN` instruction
+            elif ir == RET:
+                self.PC = self.ram[SP]
+                SP += 1
